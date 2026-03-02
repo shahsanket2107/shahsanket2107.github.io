@@ -1,0 +1,99 @@
+---
+import { projects } from '../data/projects';
+---
+
+<section id="projects" class="section-padding relative overflow-hidden">
+  <div class="section-container">
+    <div class="text-center mb-16 reveal-element">
+      <p class="font-mono text-sm text-accent-primary mb-3 tracking-wider uppercase">What I've Built</p>
+      <h2 class="font-heading font-bold text-h1 text-text-primary">
+        Featured <span class="gradient-text">Projects</span>
+      </h2>
+    </div>
+
+    <!-- Featured Projects -->
+    <div class="grid md:grid-cols-2 gap-8 mb-16">
+      {projects.filter(p => p.featured).map((project, index) => (
+        <div
+          class="project-card reveal-element group relative p-8 rounded-2xl bg-bg-surface border border-border transition-all duration-500 hover:border-accent-primary/40 hover:shadow-xl hover:shadow-accent-primary/5 overflow-hidden"
+          style={`transition-delay: ${index * 100}ms`}
+        >
+          <!-- Gradient accent top -->
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-tertiary opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+          <!-- Number -->
+          <div class="font-mono text-6xl font-bold text-accent-primary/5 absolute top-3 right-6 group-hover:text-accent-primary/10 transition-colors duration-500 select-none pointer-events-none">
+            0{index + 1}
+          </div>
+
+          <!-- Content -->
+          <div class="relative z-10">
+            <div class="mb-4">
+              <h3 class="font-heading font-semibold text-xl text-text-primary group-hover:text-accent-primary transition-colors duration-300">
+                {project.title}
+              </h3>
+            </div>
+
+            <p class="text-sm text-text-secondary mb-6 leading-relaxed">
+              {project.longDescription}
+            </p>
+
+            <!-- Tech stack -->
+            <div class="flex flex-wrap gap-2">
+              {project.technologies.map((tech) => (
+                <span class="tech-tag px-2.5 py-1 text-xs font-mono bg-accent-tertiary/10 text-accent-tertiary rounded-full border border-accent-tertiary/20">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Other Projects -->
+    <div class="reveal-element">
+      <h3 class="font-heading font-semibold text-lg text-text-primary mb-8 text-center">Other Notable Projects</h3>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {projects.filter(p => !p.featured).map((project, index) => (
+          <div
+            class="project-card-small reveal-element group p-6 rounded-xl bg-bg-surface border border-border transition-all duration-300 hover:border-accent-primary/30 hover:-translate-y-1 hover:shadow-md"
+            style={`transition-delay: ${index * 80}ms`}
+          >
+            <div class="mb-3">
+              <svg class="w-8 h-8 text-accent-primary opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+              </svg>
+            </div>
+            <h4 class="font-heading font-semibold text-text-primary mb-2 group-hover:text-accent-primary transition-colors">
+              {project.title}
+            </h4>
+            <p class="text-xs text-text-secondary mb-4 leading-relaxed line-clamp-3">
+              {project.description}
+            </p>
+            <div class="flex flex-wrap gap-2">
+              {project.technologies.slice(0, 4).map((tech) => (
+                <span class="text-[11px] font-mono text-text-tertiary bg-bg-secondary px-2 py-0.5 rounded">
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .project-card {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+
+  @media (hover: hover) {
+    .project-card:hover {
+      transform: translateY(-4px);
+    }
+  }
+</style>

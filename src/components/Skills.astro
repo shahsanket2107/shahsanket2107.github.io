@@ -1,0 +1,68 @@
+---
+import { skillCategories } from '../data/skills';
+
+const icons: Record<string, string> = {
+  code: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" /></svg>`,
+  layers: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L12 12.75 6.429 9.75m11.142 0l4.179 2.25L12 17.25 2.25 12l4.179-2.25m11.142 0l4.179 2.25L12 22.5 2.25 17.25l4.179-2.25" /></svg>`,
+  cloud: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" /></svg>`,
+  brain: `<svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" /></svg>`,
+};
+
+const accentColors = [
+  { dot: 'bg-accent-primary', icon: 'text-accent-primary', tag: 'hover:border-accent-primary/50 hover:text-accent-primary hover:bg-accent-primary/5' },
+  { dot: 'bg-accent-secondary', icon: 'text-accent-secondary', tag: 'hover:border-accent-secondary/50 hover:text-accent-secondary hover:bg-accent-secondary/5' },
+  { dot: 'bg-accent-tertiary', icon: 'text-accent-tertiary', tag: 'hover:border-accent-tertiary/50 hover:text-accent-tertiary hover:bg-accent-tertiary/5' },
+  { dot: 'bg-accent-primary', icon: 'text-accent-primary', tag: 'hover:border-accent-primary/50 hover:text-accent-primary hover:bg-accent-primary/5' },
+];
+---
+
+<section id="skills" class="section-padding bg-bg-secondary relative overflow-hidden">
+  <div class="absolute inset-0 dot-grid opacity-20"></div>
+
+  <div class="section-container relative z-10">
+    <div class="text-center mb-16 reveal-element">
+      <p class="font-mono text-sm text-accent-primary mb-3 tracking-wider uppercase">Tech Arsenal</p>
+      <h2 class="font-heading font-bold text-h1 text-text-primary">
+        Skills & <span class="gradient-text">Technologies</span>
+      </h2>
+      <p class="text-text-secondary mt-4 max-w-xl mx-auto text-sm">
+        I pick the right tool for the job, not the trendiest one. Here's what I've shipped production code with.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+      {skillCategories.map((category, catIndex) => (
+        <div
+          class="skill-category reveal-element group p-6 rounded-2xl bg-bg-surface border border-border transition-all duration-300 hover:border-accent-primary/30 hover:shadow-lg hover:shadow-accent-primary/5"
+          style={`transition-delay: ${catIndex * 100}ms`}
+        >
+          <!-- Header -->
+          <div class="flex items-start gap-4 mb-5">
+            <div class={`flex-shrink-0 w-10 h-10 rounded-xl bg-bg-secondary flex items-center justify-center ${accentColors[catIndex].icon} transition-colors duration-300`}>
+              <Fragment set:html={icons[category.icon]} />
+            </div>
+            <div>
+              <h3 class="font-heading font-semibold text-lg text-text-primary flex items-center gap-2">
+                {category.category}
+                <span class="text-xs font-mono text-text-tertiary font-normal">({category.skills.length})</span>
+              </h3>
+              <p class="text-xs text-text-tertiary mt-0.5">{category.description}</p>
+            </div>
+          </div>
+
+          <!-- Skills -->
+          <div class="flex flex-wrap gap-2">
+            {category.skills.map((skill, skillIndex) => (
+              <span
+                class={`skill-tag px-3 py-1.5 text-sm font-mono bg-bg-secondary text-text-secondary rounded-lg border border-border transition-all duration-300 ${accentColors[catIndex].tag} hover:-translate-y-0.5 cursor-default`}
+                style={`transition-delay: ${skillIndex * 30}ms`}
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,280 @@
+---
+---
+
+<section id="hero" class="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
+  <!-- Canvas 2D Neural Network -->
+  <canvas id="hero-canvas" class="absolute inset-0 w-full h-full"></canvas>
+
+  <!-- Content -->
+  <div class="relative z-10 text-center section-container">
+    <div class="hero-content">
+      <p class="hero-overline font-mono text-sm md:text-base text-accent-primary mb-4 opacity-0 tracking-[0.15em] uppercase">
+        Full-Stack Software Engineer
+      </p>
+
+      <h1 class="hero-name font-heading font-bold text-hero mb-6 text-text-primary leading-[1.1] opacity-0 translate-y-4">
+        Sanket Shah
+      </h1>
+
+      <p class="hero-subtitle text-lg md:text-xl text-text-secondary max-w-2xl mx-auto mb-10 opacity-0">
+        Building intelligent systems at the intersection of <span class="text-accent-primary">AI</span>, <span class="text-accent-secondary">cloud</span>, and <span class="text-accent-tertiary">product</span>.
+      </p>
+
+      <div class="hero-ctas flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0">
+        <a
+          href="#projects"
+          class="magnetic-btn explore-btn group px-8 py-3.5 font-medium rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-accent-primary/25 hover:-translate-y-0.5"
+        >
+          Explore My Work
+          <span class="inline-block ml-2 transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
+        </a>
+        <a
+          href="/documents/Sanket_Resume.pdf"
+          target="_blank"
+          class="magnetic-btn px-8 py-3.5 border border-accent-primary text-accent-primary font-medium rounded-lg transition-all duration-300 hover:bg-accent-primary/10"
+        >
+          Download Resume
+        </a>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<style>
+  .explore-btn {
+    background-color: var(--color-accent-primary);
+    color: #1A1816;
+  }
+
+  .explore-btn:hover {
+    color: #1A1816;
+  }
+</style>
+
+<script>
+  // Hero text reveal after preloader
+  document.addEventListener('preloaderDone', () => {
+    const els = [
+      { sel: '.hero-overline', delay: 200, transform: false },
+      { sel: '.hero-name', delay: 400, transform: true },
+      { sel: '.hero-subtitle', delay: 800, transform: true },
+      { sel: '.hero-ctas', delay: 1200, transform: false },
+    ];
+    els.forEach(({ sel, delay, transform }) => {
+      setTimeout(() => {
+        const el = document.querySelector(sel) as HTMLElement;
+        if (!el) return;
+        el.style.transition = transform
+          ? 'opacity 0.8s ease, transform 0.8s ease'
+          : 'opacity 0.8s ease';
+        el.style.opacity = '1';
+        if (transform) el.style.transform = 'translateY(0)';
+      }, delay);
+    });
+  });
+
+  // =============================================
+  // Pure Canvas 2D — AI Neural Network Animation
+  // Zero dependencies. Instant load.
+  // =============================================
+  (function initHeroCanvas() {
+    const canvas = document.getElementById('hero-canvas') as HTMLCanvasElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const isMobile = window.innerWidth < 768;
+
+    // --- Config ---
+    const NODE_COUNT = isMobile ? 70 : 150;
+    const CONNECT_DIST = isMobile ? 120 : 140;
+    const PULSE_COUNT = isMobile ? 25 : 60;
+    const MOUSE_RADIUS = 200;
+
+    // --- Theme colors ---
+    function getThemeColors() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      return isDark
+        ? { primary: [212, 184, 150], secondary: [201, 184, 214], tertiary: [184, 213, 200], bg: [26, 24, 22] }
+        : { primary: [196, 160, 124], secondary: [184, 169, 198], tertiary: [168, 197, 184], bg: [250, 247, 245] };
+    }
+    let tc = getThemeColors();
+    const palettes = () => [tc.primary, tc.secondary, tc.tertiary];
+
+    // --- Canvas sizing ---
+    let W = 0, H = 0, dpr = 1;
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio, 2);
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // --- Dead zone (center where text lives) ---
+    const deadX = isMobile ? W * 0.35 : W * 0.25;
+    const deadY = isMobile ? H * 0.2 : H * 0.18;
+    const cx = W / 2, cy = H / 2;
+
+    // --- Nodes ---
+    interface Node { x: number; y: number; vx: number; vy: number; r: number; color: number[]; phase: number }
+    const nodes: Node[] = [];
+
+    for (let i = 0; i < NODE_COUNT; i++) {
+      let x: number, y: number;
+      // Place nodes across viewport, thinned in center
+      do {
+        x = Math.random() * W;
+        y = Math.random() * H;
+      } while (Math.abs(x - cx) < deadX * 0.6 && Math.abs(y - cy) < deadY * 0.6 && Math.random() < 0.85);
+
+      const pal = palettes();
+      nodes.push({
+        x, y,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        r: Math.random() * 2 + 1,
+        color: pal[Math.floor(Math.random() * 3)],
+        phase: Math.random() * Math.PI * 2,
+      });
+    }
+
+    // --- Pulses (data packets flowing between nodes) ---
+    interface Pulse { from: number; to: number; t: number; speed: number; color: number[] }
+    const pulses: Pulse[] = [];
+    for (let i = 0; i < PULSE_COUNT; i++) {
+      const pal = palettes();
+      pulses.push({
+        from: Math.floor(Math.random() * NODE_COUNT),
+        to: Math.floor(Math.random() * NODE_COUNT),
+        t: Math.random(),
+        speed: 0.004 + Math.random() * 0.01,
+        color: pal[Math.floor(Math.random() * 3)],
+      });
+    }
+
+    // --- Mouse ---
+    let mx = -9999, my = -9999;
+    window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    window.addEventListener('mouseleave', () => { mx = -9999; my = -9999; });
+
+    // --- Animation ---
+    let isVisible = true;
+    const obs = new IntersectionObserver(([e]) => { isVisible = e.isIntersecting; }, { threshold: 0.05 });
+    obs.observe(canvas);
+
+    let time = 0;
+    function draw() {
+      requestAnimationFrame(draw);
+      if (!isVisible || !ctx) return;
+      time += 0.016;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // Move nodes
+      for (const n of nodes) {
+        n.x += n.vx;
+        n.y += n.vy;
+
+        // Bounce off edges with margin
+        if (n.x < -20) n.vx = Math.abs(n.vx);
+        if (n.x > W + 20) n.vx = -Math.abs(n.vx);
+        if (n.y < -20) n.vy = Math.abs(n.vy);
+        if (n.y > H + 20) n.vy = -Math.abs(n.vy);
+
+        // Mouse interaction — repel from cursor
+        const dx = n.x - mx, dy = n.y - my;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < MOUSE_RADIUS && dist > 0) {
+          const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS;
+          n.vx += (dx / dist) * force * 0.3;
+          n.vy += (dy / dist) * force * 0.3;
+        }
+
+        // Dampen
+        n.vx *= 0.995;
+        n.vy *= 0.995;
+      }
+
+      // Draw connections
+      for (let i = 0; i < NODE_COUNT; i++) {
+        for (let j = i + 1; j < NODE_COUNT; j++) {
+          const a = nodes[i], b = nodes[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < CONNECT_DIST) {
+            const alpha = (1 - dist / CONNECT_DIST) * 0.15;
+            const c = a.color;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.strokeStyle = `rgba(${c[0]},${c[1]},${c[2]},${alpha})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw nodes with glow
+      for (const n of nodes) {
+        const pulse = Math.sin(time * 2 + n.phase) * 0.3 + 0.7;
+        const c = n.color;
+
+        // Outer glow
+        const grad = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 4);
+        grad.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${0.3 * pulse})`);
+        grad.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r * 4, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Core
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r * pulse, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${c[0]},${c[1]},${c[2]},${0.8 * pulse})`;
+        ctx.fill();
+      }
+
+      // Draw pulses
+      for (const p of pulses) {
+        p.t += p.speed;
+        if (p.t >= 1) {
+          p.t = 0;
+          p.from = p.to;
+          p.to = Math.floor(Math.random() * NODE_COUNT);
+          const pal = palettes();
+          p.color = pal[Math.floor(Math.random() * 3)];
+        }
+
+        const a = nodes[p.from], b = nodes[p.to];
+        const px = a.x + (b.x - a.x) * p.t;
+        const py = a.y + (b.y - a.y) * p.t;
+        const c = p.color;
+        const alpha = Math.sin(p.t * Math.PI) * 0.9;
+
+        // Bright data packet
+        const pg = ctx.createRadialGradient(px, py, 0, px, py, 4);
+        pg.addColorStop(0, `rgba(${Math.min(c[0]+60,255)},${Math.min(c[1]+60,255)},${Math.min(c[2]+60,255)},${alpha})`);
+        pg.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.fillStyle = pg;
+        ctx.fill();
+      }
+    }
+
+    draw();
+
+    // Theme changes
+    new MutationObserver(() => { tc = getThemeColors(); }).observe(
+      document.documentElement, { attributes: true, attributeFilter: ['data-theme'] }
+    );
+  })();
+</script>

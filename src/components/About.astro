@@ -1,0 +1,69 @@
+---
+---
+
+<section id="about" class="section-padding relative overflow-hidden">
+  <div class="section-container">
+    <div class="grid md:grid-cols-[auto_1fr] gap-8 lg:gap-12 items-center">
+      <!-- Photo -->
+      <div class="reveal-element relative mx-auto md:mx-0">
+        <div class="relative w-56 h-56 md:w-72 md:h-72 group">
+          <!-- Decorative border -->
+          <div class="absolute inset-0 rounded-2xl border-2 border-accent-primary/30 translate-x-4 translate-y-4 transition-transform duration-500 group-hover:translate-x-2 group-hover:translate-y-2"></div>
+          <!-- Photo -->
+          <div class="relative w-full h-full rounded-2xl overflow-hidden bg-bg-surface">
+            <img
+              src="/images/profile-photo.jpg"
+              alt="Sanket Shah"
+              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+            <!-- Overlay gradient -->
+            <div class="absolute inset-0 bg-gradient-to-t from-accent-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="reveal-element">
+        <p class="font-mono text-sm text-accent-primary mb-3 tracking-wider uppercase">About Me</p>
+        <h2 class="font-heading font-bold text-h1 mb-4 text-text-primary">
+          Hey, I'm <span class="gradient-text">Sanket.</span>
+        </h2>
+        <div class="space-y-3 text-text-secondary leading-relaxed text-sm md:text-base">
+          <p>
+            I like building things from scratch — give me a vague idea and I'll have an architecture diagram in my head before you finish the sentence. Been at this since college, where I co-founded a platform that hit 600+ users on zero marketing budget. Since then, I've been an early engineer at startups, survived Oracle's enterprise codebase, and built Kubernetes operators at CarGurus that saved the team weeks of engineering overhead every month.
+          </p>
+          <p>
+            Right now I'm deep in the AI space — building multi-agent orchestration systems, wiring up RAG pipelines with vector embeddings, and tuning retrieval with rerankers. I live in Claude Code these days and it's genuinely incredible, but I've also watched it spiral into recursive tool calls that burn through context windows like they're free. Agentic systems are wild — one bad prompt chain and your agents are hallucinating function calls, looping into death spirals, or confidently returning wrong answers with perfect formatting. Debugging that is a different kind of thrill.
+          </p>
+          <p>
+            But I'm not just the AI guy — I've built an AI-powered maritime demurrage calculator that parses shipping documents most humans can't even read, a Shopify-integrated greeting card platform, a Carfax-style boat history reporting system, and a full-stack real estate listings site. If it needs a backend, a frontend, and someone to figure out why the webhook isn't firing — I'm your guy.
+          </p>
+          <p>
+            Got my MS in CS from <span class="text-accent-primary font-medium">Northeastern</span> with a 4.0 (chai tea lattes and panic-driven deadlines are an undefeated combo). Currently based in <span class="text-accent-primary font-medium">Houston, TX</span>.
+          </p>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+          <div class="stat-card p-4 rounded-xl bg-bg-surface border border-border text-center transition-all duration-300 hover:border-accent-primary/50 hover:-translate-y-1">
+            <div class="font-heading font-bold text-2xl text-accent-primary">5+</div>
+            <div class="text-xs text-text-tertiary mt-1 font-mono uppercase tracking-wider">Companies</div>
+          </div>
+          <div class="stat-card p-4 rounded-xl bg-bg-surface border border-border text-center transition-all duration-300 hover:border-accent-primary/50 hover:-translate-y-1">
+            <div class="font-heading font-bold text-2xl text-accent-primary" data-count="4.0">4.0</div>
+            <div class="text-xs text-text-tertiary mt-1 font-mono uppercase tracking-wider">GPA</div>
+          </div>
+          <div class="stat-card p-4 rounded-xl bg-bg-surface border border-border text-center transition-all duration-300 hover:border-accent-primary/50 hover:-translate-y-1">
+            <div class="font-heading font-bold text-2xl text-accent-tertiary">9+</div>
+            <div class="text-xs text-text-tertiary mt-1 font-mono uppercase tracking-wider">Projects</div>
+          </div>
+          <div class="stat-card p-4 rounded-xl bg-bg-surface border border-border text-center transition-all duration-300 hover:border-accent-primary/50 hover:-translate-y-1">
+            <div class="font-heading font-bold text-2xl text-accent-secondary">Co-Founder</div>
+            <div class="text-xs text-text-tertiary mt-1 font-mono uppercase tracking-wider">WeLocal</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

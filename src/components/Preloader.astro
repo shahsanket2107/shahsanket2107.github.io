@@ -1,0 +1,94 @@
+---
+---
+
+<div id="preloader" class="preloader">
+  <div class="preloader-top"></div>
+  <div class="preloader-bottom"></div>
+  <div class="preloader-content">
+    <h2 class="preloader-name font-heading font-bold text-text-primary">
+      Sanket Shah
+    </h2>
+    <p class="preloader-sub font-mono text-xs text-accent-primary tracking-[0.2em] uppercase">
+      Portfolio
+    </p>
+
+    <div class="preloader-bar-track">
+      <div class="preloader-bar-fill" id="preloader-bar"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .preloader-content {
+    position: relative;
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .preloader-name {
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    letter-spacing: -0.02em;
+    opacity: 0;
+    transform: translateY(8px);
+    animation: preloader-fade-in 0.5s ease forwards 0.1s;
+  }
+
+  .preloader-sub {
+    opacity: 0;
+    animation: preloader-fade-in 0.4s ease forwards 0.3s;
+  }
+
+  .preloader-bar-track {
+    width: 120px;
+    height: 2px;
+    background: var(--color-border);
+    border-radius: 1px;
+    overflow: hidden;
+    margin-top: 0.75rem;
+    opacity: 0;
+    animation: preloader-fade-in 0.3s ease forwards 0.4s;
+  }
+
+  .preloader-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--color-accent-primary);
+    border-radius: 1px;
+    transition: width 0.1s ease;
+  }
+
+  @keyframes preloader-fade-in {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+
+<script>
+  const preloader = document.getElementById('preloader');
+  const bar = document.getElementById('preloader-bar');
+  let progress = 0;
+
+  const interval = setInterval(() => {
+    progress += Math.random() * 35 + 20;
+    if (progress > 100) progress = 100;
+    if (bar) bar.style.width = progress + '%';
+    if (progress >= 100) {
+      clearInterval(interval);
+      setTimeout(() => {
+        preloader?.classList.add('loaded');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+          preloader?.remove();
+          document.dispatchEvent(new Event('preloaderDone'));
+        }, 500);
+      }, 100);
+    }
+  }, 60);
+
+  document.body.style.overflow = 'hidden';
+</script>

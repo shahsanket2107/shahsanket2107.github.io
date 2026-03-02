@@ -1,0 +1,90 @@
+---
+import { education } from '../data/education';
+---
+
+<section id="education" class="section-padding relative overflow-hidden">
+  <div class="section-container">
+    <div class="text-center mb-16 reveal-element">
+      <p class="font-mono text-sm text-accent-primary mb-3 tracking-wider uppercase">Academic Background</p>
+      <h2 class="font-heading font-bold text-h1 text-text-primary">
+        <span class="gradient-text">Education</span>
+      </h2>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+      {education.map((edu, index) => (
+        <div
+          class="reveal-element group p-6 rounded-2xl bg-bg-surface border border-border transition-all duration-500 hover:border-accent-primary/40 hover:shadow-lg hover:shadow-accent-primary/5 hover:-translate-y-1"
+          style={`transition-delay: ${index * 150}ms`}
+        >
+          <!-- Accent bar -->
+          <div class={`h-1 w-12 rounded-full mb-4 ${index === 0 ? 'bg-accent-primary' : 'bg-accent-secondary'}`}></div>
+
+          <h3 class="font-heading font-semibold text-lg text-text-primary mb-1">
+            {edu.institution}
+          </h3>
+          <p class="text-sm text-accent-primary font-medium mb-1">
+            {edu.degree} in {edu.field}
+          </p>
+          <div class="flex items-center gap-2 text-xs text-text-tertiary font-mono mb-4">
+            <span>{edu.startDate} — {edu.endDate}</span>
+            <span>•</span>
+            <span>{edu.location}</span>
+          </div>
+
+          <!-- GPA -->
+          <div class="flex items-baseline gap-2 mb-4">
+            <span class="text-3xl font-heading font-bold text-accent-primary gpa-counter" data-target={edu.gpa}>
+              0.0
+            </span>
+            <span class="text-sm text-text-tertiary font-mono">/ {edu.gpaMax} GPA</span>
+          </div>
+
+          <!-- Coursework -->
+          {edu.coursework && (
+            <div>
+              <p class="text-xs font-mono text-text-tertiary uppercase tracking-wider mb-2">Relevant Coursework</p>
+              <div class="flex flex-wrap gap-1.5">
+                {edu.coursework.map((course) => (
+                  <span class="text-xs px-2 py-1 bg-bg-secondary text-text-secondary rounded-md border border-border">
+                    {course}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  // GPA counter animation
+  const counters = document.querySelectorAll('.gpa-counter');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const el = entry.target as HTMLElement;
+        const target = parseFloat(el.dataset.target || '0');
+        let current = 0;
+        const increment = target / 60;
+        const isInteger = target === Math.floor(target);
+
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= target) {
+            current = target;
+            clearInterval(timer);
+          }
+          el.textContent = current.toFixed(current < 10 ? 1 : 2);
+        }, 25);
+
+        observer.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  counters.forEach((counter) => observer.observe(counter));
+</script>

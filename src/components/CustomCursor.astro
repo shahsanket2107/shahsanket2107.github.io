@@ -1,0 +1,99 @@
+---
+---
+
+<div id="custom-cursor" class="custom-cursor hidden md:block">
+  <div class="cursor-dot"></div>
+  <div class="cursor-ring"></div>
+</div>
+
+<style>
+  .custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 99999;
+    mix-blend-mode: difference;
+  }
+
+  .cursor-dot {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.2s ease, height 0.2s ease;
+  }
+
+  .cursor-ring {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border: 1.5px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease, border-color 0.3s ease;
+  }
+
+  .custom-cursor.hovering .cursor-dot {
+    width: 0;
+    height: 0;
+  }
+
+  .custom-cursor.hovering .cursor-ring {
+    width: 60px;
+    height: 60px;
+    border-color: rgba(255, 255, 255, 0.8);
+  }
+
+  @media (hover: none) {
+    .custom-cursor {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+  const cursor = document.getElementById('custom-cursor');
+  if (!cursor || window.matchMedia('(hover: none)').matches) {
+    cursor?.remove();
+  } else {
+    const dot = cursor.querySelector('.cursor-dot') as HTMLElement;
+    const ring = cursor.querySelector('.cursor-ring') as HTMLElement;
+
+    let mouseX = 0, mouseY = 0;
+    let ringX = 0, ringY = 0;
+
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      dot.style.left = mouseX + 'px';
+      dot.style.top = mouseY + 'px';
+    });
+
+    // Smooth follow for ring
+    function animateRing() {
+      ringX += (mouseX - ringX) * 0.15;
+      ringY += (mouseY - ringY) * 0.15;
+      ring.style.left = ringX + 'px';
+      ring.style.top = ringY + 'px';
+      requestAnimationFrame(animateRing);
+    }
+    animateRing();
+
+    // Hover detection
+    const hoverTargets = 'a, button, .project-card, .skill-tag, .stat-card, .magnetic-btn, .social-link, .timeline-card';
+
+    document.querySelectorAll(hoverTargets).forEach((el) => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('hovering'));
+    });
+
+    // Hide default cursor
+    document.body.style.cursor = 'none';
+    document.querySelectorAll('a, button').forEach(el => {
+      (el as HTMLElement).style.cursor = 'none';
+    });
+  }
+</script>

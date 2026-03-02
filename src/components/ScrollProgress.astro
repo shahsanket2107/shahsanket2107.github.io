@@ -1,0 +1,21 @@
+---
+---
+
+<div id="scroll-progress" class="fixed top-0 left-0 right-0 h-[2px] z-[101] bg-transparent">
+  <div class="scroll-progress-bar h-full bg-gradient-to-r from-accent-primary via-accent-secondary to-accent-tertiary" style="width: 0%; transition: width 0.1s linear;"></div>
+</div>
+
+<script>
+  const progressBar = document.querySelector('.scroll-progress-bar') as HTMLElement;
+
+  function updateProgress() {
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = (scrollTop / docHeight) * 100;
+    if (progressBar) {
+      progressBar.style.width = `${Math.min(progress, 100)}%`;
+    }
+  }
+
+  window.addEventListener('scroll', updateProgress, { passive: true });
+</script>

@@ -1,0 +1,110 @@
+---
+import { experiences } from '../data/experience';
+---
+
+<section id="experience" class="section-padding bg-bg-secondary relative overflow-hidden">
+  <!-- Background dot grid -->
+  <div class="absolute inset-0 dot-grid opacity-30"></div>
+
+  <div class="section-container relative z-10">
+    <div class="text-center mb-16 reveal-element">
+      <p class="font-mono text-sm text-accent-primary mb-3 tracking-wider uppercase">Career Journey</p>
+      <h2 class="font-heading font-bold text-h1 text-text-primary">
+        Work <span class="gradient-text">Experience</span>
+      </h2>
+    </div>
+
+    <!-- Timeline -->
+    <div class="relative max-w-5xl mx-auto">
+      <!-- Timeline line -->
+      <div class="timeline-line absolute left-4 md:left-1/2 md:-translate-x-[1px] top-0 bottom-0 w-[2px] bg-border">
+        <div class="timeline-progress absolute top-0 left-0 w-full bg-accent-primary" style="height: 0%"></div>
+      </div>
+
+      {experiences.map((exp, index) => {
+        const isLeft = index % 2 === 0;
+        return (
+          <div class={`timeline-item reveal-element relative mb-12 last:mb-0 pl-12 md:pl-0 md:flex ${isLeft ? 'md:flex-row-reverse' : 'md:flex-row'}`}>
+            <!-- Timeline dot -->
+            <div class="absolute left-2.5 md:left-1/2 md:-translate-x-1/2 top-6 w-4 h-4 rounded-full border-2 border-accent-primary bg-bg-primary z-10 transition-all duration-300">
+              <div class="absolute inset-0 rounded-full bg-accent-primary opacity-0 animate-ping"></div>
+            </div>
+
+            <!-- Date label (desktop only, on the opposite side of the card) -->
+            <div class={`hidden md:flex md:w-1/2 ${isLeft ? 'md:justify-start md:pl-10' : 'md:justify-end md:pr-10'} items-start pt-6`}>
+              <div class={`${isLeft ? 'text-left' : 'text-right'}`}>
+                <p class="font-heading font-semibold text-text-primary">{exp.company}</p>
+                <p class="text-xs text-text-tertiary font-mono">{exp.startDate} — {exp.endDate}</p>
+              </div>
+            </div>
+
+            <!-- Card -->
+            <div class={`md:w-1/2 ${isLeft ? 'md:pr-10' : 'md:pl-10'}`}>
+              <div class="timeline-card group p-6 rounded-2xl bg-bg-surface border border-border transition-all duration-500 hover:border-accent-primary/40 hover:shadow-lg hover:shadow-accent-primary/5 hover:-translate-y-1">
+                <!-- Header -->
+                <div class="flex flex-col gap-1 mb-4">
+                  <div class="flex items-center gap-2 flex-wrap md:hidden">
+                    <h3 class="font-heading font-semibold text-lg text-text-primary">{exp.company}</h3>
+                    {exp.company === 'WeLocal' && (
+                      <span class="px-2 py-0.5 text-xs font-mono bg-accent-tertiary/15 text-accent-tertiary rounded-full">Co-Founded</span>
+                    )}
+                  </div>
+                  <div class="hidden md:flex items-center gap-2 flex-wrap">
+                    {exp.company === 'WeLocal' && (
+                      <span class="px-2 py-0.5 text-xs font-mono bg-accent-tertiary/15 text-accent-tertiary rounded-full">Co-Founded</span>
+                    )}
+                  </div>
+                  <p class="text-sm font-medium text-accent-primary">{exp.role}</p>
+                  <div class="flex items-center gap-2 text-xs text-text-tertiary font-mono">
+                    <span class="md:hidden">{exp.startDate} — {exp.endDate}</span>
+                    <span class="md:hidden">&bull;</span>
+                    <span>{exp.location}</span>
+                  </div>
+                </div>
+
+                <!-- Highlights -->
+                <ul class="space-y-2 text-sm text-text-secondary text-left">
+                  {exp.highlights.map((highlight) => (
+                    <li class="flex gap-2 items-start">
+                      <span class="text-accent-primary mt-1.5 text-xs flex-shrink-0">&#9656;</span>
+                      <span>{highlight}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <!-- Tech tags -->
+                <div class="flex flex-wrap gap-2 mt-4">
+                  {exp.technologies.map((tech) => (
+                    <span class="px-2 py-1 text-xs font-mono bg-bg-secondary text-text-tertiary rounded-md border border-border">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+<script>
+  // Timeline progress animation
+  function updateTimelineProgress() {
+    const timeline = document.querySelector('.timeline-line');
+    const progress = document.querySelector('.timeline-progress') as HTMLElement;
+    if (!timeline || !progress) return;
+
+    const rect = timeline.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    const scrollProgress = Math.max(0, Math.min(1,
+      (windowHeight - rect.top) / (rect.height + windowHeight * 0.5)
+    ));
+
+    progress.style.height = `${scrollProgress * 100}%`;
+  }
+
+  window.addEventListener('scroll', updateTimelineProgress, { passive: true });
+  updateTimelineProgress();
+</script>
