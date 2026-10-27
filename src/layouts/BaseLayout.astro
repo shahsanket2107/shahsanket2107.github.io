@@ -1,0 +1,107 @@
+---
+import '../styles/global.css';
+import { resumeHref } from '../data/profile.ts';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'Sanket Shah is a financial engineer in Houston. He builds the tooling that makes AI agents trustworthy: cited knowledge graphs, Claude Code tooling, and validation for quant research on Chinese commodity futures.',
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const nav: [string, string][] = [
+  ['/#work', 'Work'],
+  ['/#toolkit', 'Toolkit'],
+  ['/#education', 'Education'],
+  ['/#contact', 'Contact'],
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="author" content="Sanket Shah" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="preload" href="/fonts/instrumentserif.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin />
+
+    {/* Resolved before first paint. No flash, no layout shift. The site is black
+        and amber by design, so dark is the default and the OS preference is only
+        consulted after someone has chosen light once. */}
+    <script is:inline>
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem('theme'); } catch (e) {}
+        document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark';
+      })();
+    </script>
+  </head>
+
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+
+    <header class="site-header">
+      <div class="wrap site-header__in">
+        <a class="wordmark" href="/">Sanket Shah<i aria-hidden="true"></i></a>
+        <nav class="nav" aria-label="Main">
+          {nav.map(([href, label]) => <a href={href}>{label}</a>)}
+        </nav>
+        <div class="site-header__end">
+          <button class="theme" type="button" data-theme-toggle aria-label="Switch colour theme">
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0Zm0 1.5V14.5a6.5 6.5 0 0 1 0-13Z"></path>
+            </svg>
+          </button>
+          <a class="resume" href={resumeHref}>Resume</a>
+        </div>
+      </div>
+    </header>
+
+    <nav class="navstrip" aria-label="Sections">
+      {nav.map(([href, label]) => <a href={href}>{label}</a>)}
+    </nav>
+
+    <main id="main"><slot /></main>
+
+    <footer class="site-footer">
+      <div class="wrap site-footer__in">
+        <p>&copy; {new Date().getFullYear()} Sanket Shah &middot; Houston, Texas</p>
+        <p class="site-footer__links">
+          <a href="mailto:sanket.masters@gmail.com">Email</a>
+          <a href="https://github.com/shahsanket2107">GitHub</a>
+          <a href="https://linkedin.com/in/sanketshah2107">LinkedIn</a>
+        </p>
+      </div>
+    </footer>
+
+    <script is:inline>
+      document.addEventListener('click', function (e) {
+        var b = e.target.closest && e.target.closest('[data-theme-toggle]');
+        if (!b) return;
+        var r = document.documentElement;
+        var dark =
+          r.dataset.theme === 'dark' ||
+          (!r.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+        r.dataset.theme = dark ? 'light' : 'dark';
+        try { localStorage.setItem('theme', r.dataset.theme); } catch (err) {}
+      });
+    </script>
+
+    <script src="../scripts/motion.js"></script>
+  </body>
+</html>

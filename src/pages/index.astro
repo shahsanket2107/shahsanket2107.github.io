@@ -1,0 +1,269 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { resumeHref, skills, education } from '../data/profile.ts';
+
+const companies = (await getCollection('companies')).sort((a, b) => a.data.order - b.data.order);
+const projects = await getCollection('projects');
+
+/** Projects are filed under the employer where they were built. Employers newest
+ *  first, projects within an employer in the order they were started. That shape
+ *  is his career and it needs no caption. */
+const groups = companies.map((c) => ({
+  company: c,
+  items: projects
+    .filter((p) => p.data.company.id === c.id)
+    .sort((a, b) => a.data.order - b.data.order),
+}));
+
+let n = 0;
+const numbered = groups.map((g) => ({
+  ...g,
+  items: g.items.map((p) => ({ project: p, index: ++n })),
+}));
+
+const yr = (d: Date) => d.getFullYear();
+const yy = (d: Date) => String(d.getFullYear()).slice(2);
+const range = (s: Date, e: Date | null) =>
+  !e ? `${yr(s)}-Now` : yr(e) === yr(s) ? `${yr(s)}` : `${yr(s)}-${yy(e)}`;
+const longRange = (s: Date, e: Date | null) =>
+  !e ? `${yr(s)} to now` : yr(e) === yr(s) ? `${yr(s)}` : `${yr(s)} to ${yr(e)}`;
+
+/* ── Career chart geometry. Drawn from the real dates, not decorated on. ── */
+const T0 = 2020;
+const T1 = 2027;
+const COLS = (T1 - T0) * 12;
+const mo = (d: Date) => (d.getFullYear() - T0) * 12 + d.getMonth();
+const now = new Date();
+const bar = (s: Date, e: Date | null) => ({ a: mo(s) + 1, b: Math.min(mo(e ?? now) + 2, COLS + 1) });
+const axis = Array.from({ length: 7 }, (_, i) => T0 + i);
+---
+
+<BaseLayout title="Sanket Shah, Financial Engineer">
+  {/* ══ HERO ══════════════════════════════════════════════════ */}
+  <section class="hero">
+    <div class="wrap">
+      <p class="hero__strip">
+        <span>Financial engineer</span><span>Houston, Texas</span><span>{projects.length} projects, {companies.length} places</span>
+      </p>
+
+      <div class="hero__in">
+        <div class="hero__text">
+          <h1 class="hero__h1">
+            <span class="hero__name" data-enter="1">Sanket Shah</span>
+            <span class="hero__claim" data-enter="2">
+              builds the tooling that makes <em>AI agents</em> trustworthy.
+            </span>
+          </h1>
+
+          <p class="hero__body" data-enter="3">
+            Agents are only as good as the ground truth they can cite. I'm a financial engineer
+            at Time Dynamics in Houston. My days are a mix of production trading systems, quant
+            research on Chinese commodity futures, and the tooling that lets AI agents work on
+            all of it without making things up.
+          </p>
+          <p class="hero__body" data-enter="3">
+            Most of that tooling is boring on purpose. A knowledge graph where every fact has a
+            citation. A Claude Code plugin that audits it. Validation that tries to kill my own
+            ideas first. The LLM decides which rule applies. Python decides what the number is.
+          </p>
+
+          <p class="hero__cta" data-enter="4">
+            <a class="link" href="#work">See the work <span aria-hidden="true">&darr;</span></a>
+            <a class="link" href={resumeHref}>Download resume <span aria-hidden="true">&darr;</span></a>
+          </p>
+
+        </div>
+
+        <figure class="plate" data-enter="3">
+          <picture>
+            <source srcset="/images/profile-full.webp" type="image/webp" />
+            <img
+              src="/images/profile-full.jpg"
+              alt="Sanket Shah"
+              width="600"
+              height="800"
+              fetchpriority="high"
+              decoding="async"
+            />
+          </picture>
+        </figure>
+
+        <dl class="facts" data-enter="5">
+          <div><dt>Projects</dt><dd>{projects.length}</dd></div>
+          <div><dt>Companies</dt><dd>{companies.length}</dd></div>
+          <div><dt>Since</dt><dd>2020</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  {/* ══ CAREER CHART. The only imagery, generated from the data. ══ */}
+  <div class="wrap">
+    <figure class="chart" aria-hidden="true">
+      <div class="chart__grid">
+        {
+          groups.map(({ company, items }) => {
+            const b = bar(company.data.start, company.data.end);
+            return (
+              <>
+                <span class="chart__label">{company.data.name}</span>
+                <span class="chart__track">
+                  <span
+                    class:list={['chart__bar', !company.data.end && 'is-now']}
+                    style={`--a:${b.a};--b:${b.b}`}
+                  />
+                  {items.map((p) => (
+                    <span class="chart__tick" style={`--a:${mo(p.data.start) + 1}`} />
+                  ))}
+                </span>
+              </>
+            );
+          })
+        }
+      </div>
+      <div class="chart__axis">{axis.map((y) => (<span>{y}</span>))}</div>
+    </figure>
+  </div>
+
+  {/* ══ THE REGISTER ══════════════════════════════════════════ */}
+  <section class="section" id="work" aria-labelledby="work-h">
+    <div class="wrap">
+      <header class="sec-head railed">
+        <p class="sec-head__label">Work</p>
+        <div>
+          <h2 class="sec-head__title" id="work-h">Things I have built</h2>
+          <p class="sec-head__dek">
+            Grouped by where I built them, newest first. The marked ones are where I'd start.
+          </p>
+        </div>
+      </header>
+
+      <ol class="register">
+        {
+          numbered.map(({ company, items }) => (
+            <li class="reg-group railed">
+              <h3 class="grp">
+                <span class="grp__co">{company.data.name}</span>
+                <span class="grp__role">{company.data.role}</span>
+                <span class="grp__when">
+                  {longRange(company.data.start, company.data.end)} &middot; {company.data.location}
+                </span>
+                <span class="grp__sum">{company.data.summary}</span>
+                <span class="grp__n">
+                  {items.length} {items.length === 1 ? 'project' : 'projects'}
+                </span>
+              </h3>
+
+              <ol class="rows">
+                {
+                  items.map(({ project, index }, i) => (
+                    <li data-reveal style={`--i:${i}`}>
+                      <article
+                        class="row"
+                        data-featured={project.data.featured ? '' : undefined}
+                        data-live={project.data.live ? '' : undefined}
+                      >
+                        <span class="row__n" aria-hidden="true">
+                          {String(index).padStart(2, '0')}
+                        </span>
+                        <h4 class="row__name">
+                          <a href={`/work/${project.data.slug}`}>{project.data.name}</a>
+                        </h4>
+                        <span class="row__co">{company.data.name}</span>
+                        <p class="row__tag">{project.data.tagline}</p>
+                        <p class="row__status">{project.data.status}</p>
+                        <span class="row__when">
+                          {range(project.data.start, project.data.end)}
+                        </span>
+                        <span class="row__go" aria-hidden="true">&rarr;</span>
+                      </article>
+                    </li>
+                  ))
+                }
+              </ol>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  {/* ══ TOOLKIT ═══════════════════════════════════════════════ */}
+  <section class="section" id="toolkit" aria-labelledby="tool-h">
+    <div class="wrap">
+      <header class="sec-head railed">
+        <p class="sec-head__label">Skills</p>
+        <div>
+          <h2 class="sec-head__title" id="tool-h">What I work in</h2>
+          <p class="sec-head__dek">
+            If it's not on this list, I haven't shipped anything with it.
+          </p>
+        </div>
+      </header>
+
+      <div class="toolkit">
+        {
+          skills.map((g, i) => (
+            <section class="tool" data-reveal style={`--i:${i % 2}`}>
+              <h3 class="tool__t">{g.title}</h3>
+              <p class="tool__note">{g.note}</p>
+              <ul class="tool__list">
+                {g.items.map((s) => (<li>{s}</li>))}
+              </ul>
+            </section>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* ══ EDUCATION ═════════════════════════════════════════════ */}
+  <section class="section" id="education" aria-labelledby="edu-h">
+    <div class="wrap">
+      <header class="sec-head railed">
+        <p class="sec-head__label">Education</p>
+        <div>
+          <h2 class="sec-head__title" id="edu-h">Two degrees, two continents</h2>
+        </div>
+      </header>
+
+      <div>
+        {
+          education.map((e, i) => (
+            <div class="edu-row" data-reveal style={`--i:${i}`}>
+              <p class="edu__grade">{e.grade}</p>
+              <div>
+                <h3 class="edu__school">{e.school}</h3>
+                <p class="edu__sub">{e.sub}</p>
+                <p class="edu__deg">{e.degree}</p>
+                <ul class="edu__courses">
+                  {e.courses.map((c) => (<li>{c}</li>))}
+                </ul>
+              </div>
+              <p class="edu__when">{e.when}<br />{e.where}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* ══ CONTACT. The one loud field on the page. ══════════════ */}
+  <section class="band" id="contact" aria-labelledby="contact-h">
+    <div class="wrap band__in">
+      <div>
+        <p class="band__label">Get in touch</p>
+        <h2 class="band__title" id="contact-h">My inbox has no rate limiter</h2>
+        <p class="band__note">
+          I'm in Houston, Texas. Happy to talk about agents, evals or futures markets.
+        </p>
+      </div>
+      <ul class="band__links">
+        <li><a href="mailto:sanket.masters@gmail.com">sanket.masters@gmail.com</a></li>
+        <li><a href="https://github.com/shahsanket2107">GitHub</a></li>
+        <li><a href="https://linkedin.com/in/sanketshah2107">LinkedIn</a></li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

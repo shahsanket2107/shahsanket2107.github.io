@@ -1,0 +1,81 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { getCollection, getEntry, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export const getStaticPaths = (async () => {
+  const projects = await getCollection('projects');
+  return projects.map((p) => ({ params: { project: p.data.slug }, props: { project: p } }));
+}) satisfies GetStaticPaths;
+
+const { project } = Astro.props;
+const p = project.data;
+
+const companies = (await getCollection('companies')).sort((a, b) => a.data.order - b.data.order);
+const company = await getEntry(p.company);
+
+/* The same canonical order the home page uses, and it wraps, so every one of the
+   ten pages has both a previous and a next. The old version filtered to
+   same-company siblings, which left four pages as dead ends. */
+const rank = (id: string) => companies.findIndex((c) => c.id === id);
+const ordered = (await getCollection('projects')).sort(
+  (a, b) => rank(a.data.company.id) - rank(b.data.company.id) || a.data.order - b.data.order
+);
+const i = ordered.findIndex((x) => x.data.slug === p.slug);
+const prev = ordered[(i - 1 + ordered.length) % ordered.length];
+const next = ordered[(i + 1) % ordered.length];
+
+const { Content } = await render(project);
+
+const yr = (d: Date) => d.getFullYear();
+const when = !p.end ? `${yr(p.start)} to now` : yr(p.end) === yr(p.start) ? `${yr(p.start)}` : `${yr(p.start)} to ${yr(p.end)}`;
+const coOf = (x: typeof p) => companies.find((c) => c.id === x.company.id)?.data.name ?? '';
+---
+
+<BaseLayout title={`${p.name}, Sanket Shah`} description={p.tagline}>
+  {/* Fills as a two finger swipe travels, so the gesture is visible before it
+      commits. Script sets --p from 0 to 1. */}
+  <div class="swipeback" aria-hidden="true">&larr; All work</div>
+
+  <article class="wrap case railed">
+    <div class="case__rail">
+      <a class="backlink" href="/#work">&larr; All work</a>
+      <p class="backhint">Swipe right to go back</p>
+      <dl class="spec">
+        <div><dt>Where</dt><dd>{company?.data.name}</dd></div>
+        <div><dt>When</dt><dd>{when}</dd></div>
+        <div><dt>Built with</dt><dd class="spec__stack">{p.stack.join(' · ')}</dd></div>
+        <div>
+          <dt>Status</dt>
+          <dd class="spec__status" data-live={String(p.live)}>{p.status}</dd>
+        </div>
+      </dl>
+    </div>
+
+    <div class="case__main">
+      <h1 class="case__h1">{p.name}</h1>
+      <p class="case__tag">{p.tagline}</p>
+      <div class="case__body"><Content /></div>
+    </div>
+  </article>
+
+  <nav class="wrap case-nav" aria-label="Other projects">
+    <ol class="rows">
+      {
+        [prev, next].map((x, k) => (
+          <li>
+            <article class="row">
+              <span class="row__n" aria-hidden="true">{k === 0 ? '←' : '→'}</span>
+              <h2 class="row__name"><a href={`/work/${x.data.slug}`}>{x.data.name}</a></h2>
+              <span class="row__co">{coOf(x.data)}</span>
+              <p class="row__tag">{x.data.tagline}</p>
+              <p class="row__status">{x.data.status}</p>
+              <span class="row__when">{yr(x.data.start)}</span>
+              <span class="row__go" aria-hidden="true">&rarr;</span>
+            </article>
+          </li>
+        ))
+      }
+    </ol>
+  </nav>
+</BaseLayout>
