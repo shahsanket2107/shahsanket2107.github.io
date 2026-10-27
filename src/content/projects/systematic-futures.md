@@ -25,4 +25,4 @@ Most of the work turned out not to be the strategies. It's the validation. Walk 
 
 The strategies got simpler and the validation got harder, and that's when things started working.
 
-It all runs on my employer's capital, so I can talk about how it works but not about how it has done.
+It's my employer's work, so I can talk about how it works but not about how it has done.
