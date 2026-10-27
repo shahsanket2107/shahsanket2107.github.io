@@ -1,7 +1,7 @@
 ---
 order: 5
 company: "time-dynamics"
-name: "Workspace Platform Gateway"
+name: "TeamTurbo Gateway"
 slug: "workspace-gateway"
 start: 2025-05-01
 end: 2026-03-01
@@ -12,12 +12,12 @@ stack:
   - "Express"
   - "TypeScript"
   - "Firestore"
-status: "Live since August 2025."
+status: "Live at teamturbo.io since August 2025."
 live: true
 featured: true
 ---
 
-The product existed and there was no way to buy it. A stranger could not sign up, get an
+[TeamTurbo](https://teamturbo.io) sells AI workspaces where you write the docs and agents build from them. The product existed and there was no way to buy it. A stranger could not sign up, get an
 environment provisioned, invite their team or pay, so every customer was onboarded by hand.
 
 I built the gateway that does all four, plus the marketing site in front of it. Sign in works across

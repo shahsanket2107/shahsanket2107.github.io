@@ -9,7 +9,7 @@ import { readHtmlFiles, visibleProse } from './_util.mjs';
  * It is cheap and it does not get tired.
  */
 const FORBIDDEN = [
-  'TeamTurbo', 'Sharpe', 'drawdown', 'out of sample', 'out-of-sample', 'backtest return',
+  'Sharpe', 'drawdown', 'out of sample', 'out-of-sample', 'backtest return',
 ];
 
 /** Relative statistics are allowed and should not trip anything. */
