@@ -9,14 +9,13 @@ interface Props {
 
 const {
   title,
-  description = 'Sanket Shah is a financial engineer in Houston. He builds the tooling that makes AI agents trustworthy: cited knowledge graphs, Claude Code tooling, and validation for quant research on Chinese commodity futures.',
+  description = 'Sanket Shah is a software engineer in Houston. He builds trading systems, quant research tooling on Chinese commodity futures, and the tooling that makes AI agents cite their sources.',
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const nav: [string, string][] = [
   ['/#work', 'Work'],
-  ['/#toolkit', 'Toolkit'],
-  ['/#education', 'Education'],
+  ['/#about', 'About'],
   ['/#contact', 'Contact'],
 ];
 ---
@@ -28,6 +27,7 @@ const nav: [string, string][] = [
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#0e0d0b" />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="author" content="Sanket Shah" />
@@ -35,21 +35,14 @@ const nav: [string, string][] = [
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content="summary" />
 
     <link rel="preload" href="/fonts/instrumentserif.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin />
 
-    {/* Resolved before first paint. No flash, no layout shift. The site is black
-        and amber by design, so dark is the default and the OS preference is only
-        consulted after someone has chosen light once. */}
-    <script is:inline>
-      (function () {
-        var t = null;
-        try { t = localStorage.getItem('theme'); } catch (e) {}
-        document.documentElement.dataset.theme = t === 'light' ? 'light' : 'dark';
-      })();
-    </script>
+    {/* Interactive bits hide their extra panels only once JS is here, so a
+        reader without it still sees every panel, note and source. */}
+    <script is:inline>document.documentElement.classList.add('js');</script>
   </head>
 
   <body>
@@ -61,14 +54,7 @@ const nav: [string, string][] = [
         <nav class="nav" aria-label="Main">
           {nav.map(([href, label]) => <a href={href}>{label}</a>)}
         </nav>
-        <div class="site-header__end">
-          <button class="theme" type="button" data-theme-toggle aria-label="Switch colour theme">
-            <svg viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0Zm0 1.5V14.5a6.5 6.5 0 0 1 0-13Z"></path>
-            </svg>
-          </button>
-          <a class="resume" href={resumeHref}>Resume</a>
-        </div>
+        <a class="resume" href={resumeHref}>Resume</a>
       </div>
     </header>
 
@@ -89,19 +75,6 @@ const nav: [string, string][] = [
       </div>
     </footer>
 
-    <script is:inline>
-      document.addEventListener('click', function (e) {
-        var b = e.target.closest && e.target.closest('[data-theme-toggle]');
-        if (!b) return;
-        var r = document.documentElement;
-        var dark =
-          r.dataset.theme === 'dark' ||
-          (!r.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
-        r.dataset.theme = dark ? 'light' : 'dark';
-        try { localStorage.setItem('theme', r.dataset.theme); } catch (err) {}
-      });
-    </script>
-
-    <script src="../scripts/motion.js"></script>
+    <script src="../scripts/site.js"></script>
   </body>
 </html>

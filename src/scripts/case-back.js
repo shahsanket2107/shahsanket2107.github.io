@@ -134,7 +134,7 @@ export function initCaseBack() {
       return;
     }
     if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-      const links = document.querySelectorAll('.case-nav .row__name a');
+      const links = document.querySelectorAll('.case-nav a[data-dir]');
       const target = links[e.key === 'ArrowLeft' ? 0 : 1];
       if (target) {
         e.preventDefault();

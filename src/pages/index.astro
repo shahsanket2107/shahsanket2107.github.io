@@ -1,55 +1,40 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { resumeHref, skills, education } from '../data/profile.ts';
+import { resumeHref } from '../data/profile.ts';
+import { lanes, beliefs, killNotes, agents, timeline } from '../data/home.ts';
 
-const companies = (await getCollection('companies')).sort((a, b) => a.data.order - b.data.order);
 const projects = await getCollection('projects');
+const bySlug = new Map(projects.map((p) => [p.data.slug, p.data]));
+const get = (slug: string) => {
+  const p = bySlug.get(slug);
+  if (!p) throw new Error(`home.ts names a project that does not exist: ${slug}`);
+  return p;
+};
 
-/** Projects are filed under the employer where they were built. Employers newest
- *  first, projects within an employer in the order they were started. That shape
- *  is his career and it needs no caption. */
-const groups = companies.map((c) => ({
-  company: c,
-  items: projects
-    .filter((p) => p.data.company.id === c.id)
-    .sort((a, b) => a.data.order - b.data.order),
-}));
+// Every project page is reachable from the home page, or the build says so.
+const linked = new Set(lanes.flatMap((l) => [...l.items.map((i) => i.slug), ...(l.earlier ?? []).map((e) => e.slug)]));
+for (const p of projects) {
+  if (!linked.has(p.data.slug)) throw new Error(`project ${p.data.slug} is not in any lane in home.ts`);
+}
 
-let n = 0;
-const numbered = groups.map((g) => ({
-  ...g,
-  items: g.items.map((p) => ({ project: p, index: ++n })),
-}));
-
-const yr = (d: Date) => d.getFullYear();
-const yy = (d: Date) => String(d.getFullYear()).slice(2);
-const range = (s: Date, e: Date | null) =>
-  !e ? `${yr(s)}-Now` : yr(e) === yr(s) ? `${yr(s)}` : `${yr(s)}-${yy(e)}`;
-const longRange = (s: Date, e: Date | null) =>
-  !e ? `${yr(s)} to now` : yr(e) === yr(s) ? `${yr(s)}` : `${yr(s)} to ${yr(e)}`;
-
-/* ── Career chart geometry. Drawn from the real dates, not decorated on. ── */
-const T0 = 2020;
-const T1 = 2027;
-const COLS = (T1 - T0) * 12;
-const mo = (d: Date) => (d.getFullYear() - T0) * 12 + d.getMonth();
-const now = new Date();
-const bar = (s: Date, e: Date | null) => ({ a: mo(s) + 1, b: Math.min(mo(e ?? now) + 2, COLS + 1) });
-const axis = Array.from({ length: 7 }, (_, i) => T0 + i);
+const href = (slug: string) => `/work/${slug}`;
+const kill = killNotes[1];
+const companies = await getCollection('companies');
 ---
 
-<BaseLayout title="Sanket Shah, Financial Engineer">
-  {/* ══ HERO ══════════════════════════════════════════════════ */}
-  <section class="hero">
+<BaseLayout title="Sanket Shah, Software Engineer">
+  {/* ══ HERO. His name, his face, one claim. ══════════════ */}
+  <section class="hero" aria-labelledby="hero-h">
     <div class="wrap">
       <p class="hero__strip">
-        <span>Financial engineer</span><span>Houston, Texas</span><span>{projects.length} projects, {companies.length} places</span>
+        <span>Software engineer at Time Dynamics, Houston</span>
+        <span>{projects.length} projects, {companies.length} places</span>
       </p>
 
       <div class="hero__in">
         <div class="hero__text">
-          <h1 class="hero__h1">
+          <h1 class="hero__h1" id="hero-h">
             <span class="hero__name" data-enter="1">Sanket Shah</span>
             <span class="hero__claim" data-enter="2">
               builds the tooling that makes <em>AI agents</em> trustworthy.
@@ -57,22 +42,20 @@ const axis = Array.from({ length: 7 }, (_, i) => T0 + i);
           </h1>
 
           <p class="hero__body" data-enter="3">
-            Agents are only as good as the ground truth they can cite. I'm a financial engineer
-            at Time Dynamics in Houston. My days are a mix of production trading systems, quant
-            research on Chinese commodity futures, and the tooling that lets AI agents work on
-            all of it without making things up.
+            I'm a software engineer at an energy trading startup. I research
+            and run systematic trading strategies on Chinese commodity futures, and I build the
+            tooling that lets AI agents help with that work without making things up.
           </p>
           <p class="hero__body" data-enter="3">
             Most of that tooling is boring on purpose. A knowledge graph where every fact has a
             citation. A Claude Code plugin that audits it. Validation that tries to kill my own
-            ideas first. The LLM decides which rule applies. Python decides what the number is.
+            ideas first.
           </p>
 
           <p class="hero__cta" data-enter="4">
             <a class="link" href="#work">See the work <span aria-hidden="true">&darr;</span></a>
             <a class="link" href={resumeHref}>Download resume <span aria-hidden="true">&darr;</span></a>
           </p>
-
         </div>
 
         <figure class="plate" data-enter="3">
@@ -87,183 +70,258 @@ const axis = Array.from({ length: 7 }, (_, i) => T0 + i);
               decoding="async"
             />
           </picture>
+          <a class="plate__cite" href="#about" aria-label="About Sanket, source 1">
+            <span aria-hidden="true">[1]</span><span class="plate__tip" aria-hidden="true">About me</span>
+          </a>
         </figure>
 
-        <dl class="facts" data-enter="5">
-          <div><dt>Projects</dt><dd>{projects.length}</dd></div>
-          <div><dt>Companies</dt><dd>{companies.length}</dd></div>
+        <dl class="stats" data-enter="5">
+          <div><dt>Projects</dt><dd data-count={projects.length}>{projects.length}</dd></div>
+          <div><dt>Companies</dt><dd data-count={companies.length}>{companies.length}</dd></div>
           <div><dt>Since</dt><dd>2020</dd></div>
         </dl>
       </div>
     </div>
   </section>
 
-  {/* ══ CAREER CHART. The only imagery, generated from the data. ══ */}
-  <div class="wrap">
-    <figure class="chart" aria-hidden="true">
-      <div class="chart__grid">
-        {
-          groups.map(({ company, items }) => {
-            const b = bar(company.data.start, company.data.end);
-            return (
-              <>
-                <span class="chart__label">{company.data.name}</span>
-                <span class="chart__track">
-                  <span
-                    class:list={['chart__bar', !company.data.end && 'is-now']}
-                    style={`--a:${b.a};--b:${b.b}`}
-                  />
-                  {items.map((p) => (
-                    <span class="chart__tick" style={`--a:${mo(p.data.start) + 1}`} />
-                  ))}
-                </span>
-              </>
-            );
-          })
-        }
-      </div>
-      <div class="chart__axis">{axis.map((y) => (<span>{y}</span>))}</div>
-    </figure>
-  </div>
-
-  {/* ══ THE REGISTER ══════════════════════════════════════════ */}
-  <section class="section" id="work" aria-labelledby="work-h">
-    <div class="wrap">
-      <header class="sec-head railed">
-        <p class="sec-head__label">Work</p>
-        <div>
-          <h2 class="sec-head__title" id="work-h">Things I have built</h2>
-          <p class="sec-head__dek">
-            Grouped by where I built them, newest first. The marked ones are where I'd start.
+  {/* ══ HOW I WORK. The thesis on the left, proof on the right. ══ */}
+  <section class="wrap section thesis" aria-labelledby="thesis-h">
+    <div class="sec-head">
+      <p class="sec-head__label">How I work</p>
+    </div>
+    <div class="thesis__in">
+      <div class="thesis__text">
+        <h2 class="thesis__quote" id="thesis-h">
+          &ldquo;Agents are only as good as the ground truth they can cite.&rdquo;<button
+            class="cite"
+            type="button"
+            aria-expanded="false"
+            aria-controls="source-1"
+            data-toggle="source-1"><span aria-hidden="true">[2]</span><span class="vh">Show the source for this claim</span></button>
+        </h2>
+        <aside class="source" id="source-1" aria-label="Source 2">
+          <p class="source__label">[2] Cited Knowledge Graph</p>
+          <p>
+            A Claude Code session once told us something couldn't be done. The docs had the exact
+            steps. So I turned the docs into 832 cited facts that every session checks first.
           </p>
+          <a class="more" href={href('cited-knowledge-graph')}>Read the story <span aria-hidden="true">&rarr;</span></a>
+        </aside>
+        <p class="lede">
+          Try the console. Each command is a real tool I use, and each one links to the page about it.
+        </p>
+      </div>
+
+    <div class="console" data-console>
+      <div class="console__bar">
+        <span>~/sanket &nbsp;try a command</span>
+        <span class="console__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+      </div>
+      <div class="console__tabs" role="tablist" aria-label="Console commands" hidden data-tabs>
+        <button class="chip" type="button" role="tab" id="tab-ask" aria-controls="panel-ask" aria-selected="true">kg ask</button>
+        <button class="chip" type="button" role="tab" id="tab-hq" aria-controls="panel-hq" aria-selected="false" tabindex="-1">hq status</button>
+        <button class="chip" type="button" role="tab" id="tab-kill" aria-controls="panel-kill" aria-selected="false" tabindex="-1">kill note</button>
+      </div>
+      <div class="console__panels">
+        <div class="panel is-on" id="panel-ask" role="tabpanel" aria-labelledby="tab-ask">
+          <p><code><span class="prompt">$</span> <span class="cmd">kg ask "can a session do this, or not?"</span></code></p>
+          <p class="out-dim">checking the graph before answering…</p>
+          <p>
+            Yes. The docs have the steps.<button
+              class="nodebtn"
+              type="button"
+              aria-expanded="false"
+              aria-controls="node-0417"
+              data-toggle="node-0417">node 0417 <span aria-hidden="true">↗</span></button>
+          </p>
+          <div class="nodecard" id="node-0417">
+            <span>fact: one fact, one note</span>
+            <span>cites: [doc] § [section]</span>
+            <span class="ok">audit: verified against source ✓</span>
+          </div>
+          <a class="more" href={href('cited-knowledge-graph')}>Read more: Cited Knowledge Graph <span aria-hidden="true">&rarr;</span></a>
         </div>
-      </header>
 
-      <ol class="register">
+        <div class="panel" id="panel-hq" role="tabpanel" aria-labelledby="tab-hq">
+          <p><code><span class="prompt">$</span> <span class="cmd">hq status</span></code></p>
+          <ul class="agents" aria-label="Agents">
+            {
+              agents.map((a) => (
+                <li>
+                  <span>{a.name}</span>
+                  <span class="meta">
+                    <span class="model">{a.model}</span>
+                    <span class={`tone-${a.tone}`}>{a.state}</span>
+                  </span>
+                </li>
+              ))
+            }
+          </ul>
+          <p class="out-dim">the brain agent delegates and never edits code</p>
+          <a class="more" href={href('hq')}>Read more: HQ <span aria-hidden="true">&rarr;</span></a>
+        </div>
+
+        <div class="panel" id="panel-kill" role="tabpanel" aria-labelledby="tab-kill">
+          <p><code><span class="prompt">$</span> <span class="cmd">cat kill-notes/latest.md</span></code></p>
+          <div class="killcard">
+            <span class="stamp">Killed, note filed</span>
+            <span><strong>{kill.title}</strong> {kill.body}</span>
+          </div>
+          <a class="more" href="#kills">Read more kill notes <span aria-hidden="true">&rarr;</span></a>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  {/* ══ WORK ══════════════════════════════════════════════ */}
+  <section class="wrap section work" id="work" aria-labelledby="work-h">
+    <div class="work__head">
+      <div class="sec-head">
+        <p class="sec-head__label">Work</p>
+        <h2 class="h2" id="work-h">Three lanes. Pick one.</h2>
+      </div>
+      <div class="filters" role="group" aria-label="Filter projects" hidden data-filters>
+        <button class="chip" type="button" aria-pressed="true" data-lane-pick="all">All</button>
+        {lanes.map((l) => <button class="chip" type="button" aria-pressed="false" data-lane-pick={l.id}>{l.chip}</button>)}
+      </div>
+    </div>
+
+    {
+      lanes.map((lane) => (
+        <div class="lane" data-lane={lane.id} data-reveal>
+          <div class="lane__head">
+            <span class="lane__num" aria-hidden="true">{lane.num}</span>
+            <h3 class="lane__title">{lane.title}</h3>
+            <span class="lane__sub">{lane.sub}</span>
+          </div>
+          <ul class="cards">
+            {lane.items.map((it) => {
+              const p = get(it.slug);
+              return (
+                <li>
+                  <article class="card">
+                    <p class="card__status">
+                      <span class:list={['dot', it.on && 'on']} aria-hidden="true" />
+                      {it.status}
+                    </p>
+                    <h4 class="card__name"><a href={href(it.slug)}>{p.name}</a></h4>
+                    <p class="card__line">{p.tagline}</p>
+                    <span class="card__more" aria-hidden="true">Read more &rarr;</span>
+                  </article>
+                </li>
+              );
+            })}
+          </ul>
+          {lane.earlier && (
+            <p class="earlier">
+              Earlier:{' '}
+              {lane.earlier.map((e, i) => [i > 0 && ', ', <a href={href(e.slug)}>{e.label}</a>])}
+            </p>
+          )}
+        </div>
+      ))
+    }
+  </section>
+
+  {/* ══ BELIEFS ═══════════════════════════════════════════ */}
+  <section class="wrap section" id="beliefs" aria-labelledby="beliefs-h">
+    <div class="sec-head">
+      <p class="sec-head__label">Things I believe now</p>
+      <h2 class="h2" id="beliefs-h">Each one cost me a project.</h2>
+    </div>
+    <ul class="beliefs">
+      {
+        beliefs.map((b) => (
+          <li class="card belief" data-reveal>
+            <blockquote>&ldquo;{b.quote}&rdquo;</blockquote>
+            <p class="belief__src">
+              learned on <a href={href(b.slug)}>{get(b.slug).name} <span aria-hidden="true">&rarr;</span></a>
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  {/* ══ KILL NOTES ════════════════════════════════════════ */}
+  <section class="wrap section kills" id="kills" aria-labelledby="kills-h">
+    <div class="sec-head kills__head"><p class="sec-head__label">Kill notes</p></div>
+    <div class="kills__text">
+      <h2 class="h2" id="kills-h">Most ideas die in written post mortems.</h2>
+      <p class="lede">
+        I kill most of what I try. The one paragraph note on why is the entire return on a failed
+        experiment. Here are a few, with the details left out.
+      </p>
+    </div>
+    <div class="kills__deck" data-deck>
+      <ol class="stack">
         {
-          numbered.map(({ company, items }) => (
-            <li class="reg-group railed">
-              <h3 class="grp">
-                <span class="grp__co">{company.data.name}</span>
-                <span class="grp__role">{company.data.role}</span>
-                <span class="grp__when">
-                  {longRange(company.data.start, company.data.end)} &middot; {company.data.location}
-                </span>
-                <span class="grp__sum">{company.data.summary}</span>
-                <span class="grp__n">
-                  {items.length} {items.length === 1 ? 'project' : 'projects'}
-                </span>
-              </h3>
-
-              <ol class="rows">
-                {
-                  items.map(({ project, index }, i) => (
-                    <li data-reveal style={`--i:${i}`}>
-                      <article
-                        class="row"
-                        data-featured={project.data.featured ? '' : undefined}
-                        data-live={project.data.live ? '' : undefined}
-                      >
-                        <span class="row__n" aria-hidden="true">
-                          {String(index).padStart(2, '0')}
-                        </span>
-                        <h4 class="row__name">
-                          <a href={`/work/${project.data.slug}`}>{project.data.name}</a>
-                        </h4>
-                        <span class="row__co">{company.data.name}</span>
-                        <p class="row__tag">{project.data.tagline}</p>
-                        <p class="row__status">{project.data.status}</p>
-                        <span class="row__when">
-                          {range(project.data.start, project.data.end)}
-                        </span>
-                        <span class="row__go" aria-hidden="true">&rarr;</span>
-                      </article>
-                    </li>
-                  ))
-                }
-              </ol>
+          killNotes.map((n, i) => (
+            <li class:list={['note', i === 0 && 'is-on']}>
+              <p class="note__top">
+                <span class="stamp">Killed: {n.tag}</span>
+                <span class="note__n">{i + 1} / {killNotes.length}</span>
+              </p>
+              <h3 class="note__title">{n.title}</h3>
+              <p class="note__body">{n.body}</p>
             </li>
           ))
         }
       </ol>
-    </div>
-  </section>
-
-  {/* ══ TOOLKIT ═══════════════════════════════════════════════ */}
-  <section class="section" id="toolkit" aria-labelledby="tool-h">
-    <div class="wrap">
-      <header class="sec-head railed">
-        <p class="sec-head__label">Skills</p>
-        <div>
-          <h2 class="sec-head__title" id="tool-h">What I work in</h2>
-          <p class="sec-head__dek">
-            If it's not on this list, I haven't shipped anything with it.
-          </p>
-        </div>
-      </header>
-
-      <div class="toolkit">
-        {
-          skills.map((g, i) => (
-            <section class="tool" data-reveal style={`--i:${i % 2}`}>
-              <h3 class="tool__t">{g.title}</h3>
-              <p class="tool__note">{g.note}</p>
-              <ul class="tool__list">
-                {g.items.map((s) => (<li>{s}</li>))}
-              </ul>
-            </section>
-          ))
-        }
+      <div class="deck__ctl">
+        <button class="btn" type="button" data-deck-prev aria-label="Previous kill note"><span aria-hidden="true">&larr;</span></button>
+        <button class="btn btn--line-amber" type="button" data-deck-next>Next kill note <span aria-hidden="true">&rarr;</span></button>
+        <p class="vh" aria-live="polite" data-deck-status></p>
       </div>
     </div>
   </section>
 
-  {/* ══ EDUCATION ═════════════════════════════════════════════ */}
-  <section class="section" id="education" aria-labelledby="edu-h">
-    <div class="wrap">
-      <header class="sec-head railed">
-        <p class="sec-head__label">Education</p>
-        <div>
-          <h2 class="sec-head__title" id="edu-h">Two degrees, two continents</h2>
-        </div>
-      </header>
-
-      <div>
-        {
-          education.map((e, i) => (
-            <div class="edu-row" data-reveal style={`--i:${i}`}>
-              <p class="edu__grade">{e.grade}</p>
-              <div>
-                <h3 class="edu__school">{e.school}</h3>
-                <p class="edu__sub">{e.sub}</p>
-                <p class="edu__deg">{e.degree}</p>
-                <ul class="edu__courses">
-                  {e.courses.map((c) => (<li>{c}</li>))}
-                </ul>
-              </div>
-              <p class="edu__when">{e.when}<br />{e.where}</p>
-            </div>
-          ))
-        }
-      </div>
+  {/* ══ ABOUT ═════════════════════════════════════════════ */}
+  <section class="wrap section" id="about" aria-labelledby="about-h">
+    <div class="sec-head">
+      <p class="sec-head__label">About</p>
+      <h2 class="h2" id="about-h"><span class="about__ref" aria-hidden="true">[1]</span> The short version.</h2>
     </div>
+    <div class="about__cols">
+      <p>
+        The agent tooling started with an annoyance. Claude Code told me something couldn't be
+        done, and our platform docs had the exact steps. So I turned the docs into a knowledge
+        graph where every fact is one small note with a citation, and made it the first thing every
+        session checks. Then I packaged it as kg, a Claude Code plugin that does the same for any
+        set of docs.
+      </p>
+      <p>
+        On the trading side, most of my ideas die in testing, and I'm fine with that. The ones that
+        survive are simpler than what I started with. A tool that worked out ship delay fees from
+        charter contracts taught me to let the LLM pick the rule and let Python do the math.
+      </p>
+      <p>
+        Before this: fourth employee at Pairbo, platform engineering at CarGurus, 5G rate limiting
+        at Oracle, and a startup I cofounded in India during COVID. I build tools for myself too,
+        like HQ, Clarvis and Interpreter.
+      </p>
+    </div>
+    <ol class="timeline" aria-label="Timeline">
+      {timeline.map(([y, t]) => (<li><span class="yr">{y}</span><span class="ev">{t}</span></li>))}
+    </ol>
   </section>
 
-  {/* ══ CONTACT. The one loud field on the page. ══════════════ */}
-  <section class="band" id="contact" aria-labelledby="contact-h">
-    <div class="wrap band__in">
-      <div>
-        <p class="band__label">Get in touch</p>
-        <h2 class="band__title" id="contact-h">My inbox has no rate limiter</h2>
-        <p class="band__note">
-          I'm in Houston, Texas. Happy to talk about agents, evals or futures markets.
-        </p>
+  {/* ══ CONTACT ═══════════════════════════════════════════ */}
+  <section class="wrap contact" id="contact" aria-labelledby="contact-h">
+    <div class="contact__box">
+      <div class="contact__text">
+        <p class="sec-head__label">Contact</p>
+        <h2 class="h2" id="contact-h">Building in the same corner? Say hi.</h2>
+        <p class="lede">Agents, evals, futures markets. Always up for that conversation.</p>
       </div>
-      <ul class="band__links">
-        <li><a href="mailto:sanket.masters@gmail.com">sanket.masters@gmail.com</a></li>
-        <li><a href="https://github.com/shahsanket2107">GitHub</a></li>
-        <li><a href="https://linkedin.com/in/sanketshah2107">LinkedIn</a></li>
+      <ul class="contact__links">
+        <li><a class="primary" href="mailto:sanket.masters@gmail.com">sanket.masters@gmail.com <span aria-hidden="true">&rarr;</span></a></li>
+        <li><a href="https://linkedin.com/in/sanketshah2107">LinkedIn <span aria-hidden="true">↗</span></a></li>
+        <li><a href="https://github.com/shahsanket2107">GitHub <span aria-hidden="true">↗</span></a></li>
+        <li><a href={resumeHref}>Resume, PDF <span aria-hidden="true">↓</span></a></li>
       </ul>
     </div>
+    <p class="signoff">Every claim on this site has a source. Look for the amber brackets.</p>
   </section>
 </BaseLayout>

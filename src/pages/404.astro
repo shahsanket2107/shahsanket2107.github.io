@@ -3,19 +3,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
 <BaseLayout title="Not found, Sanket Shah" description="That page does not exist.">
-  <section class="wrap section">
-    <header class="sec-head railed">
-      <p class="sec-head__label">404</p>
-      <div>
-        <h1 class="sec-head__title">This one did not ship</h1>
-        <p class="sec-head__dek">
-          That address does not point at anything. Everything that does is filed under the work.
-        </p>
-      </div>
-    </header>
+  <section class="wrap lost">
+    <p class="kicker">404 · no source</p>
+    <h1 class="h2">This one didn't ship.</h1>
+    <p class="lede">That address doesn't point at anything. Everything that does is under the work.</p>
     <p class="hero__cta">
-      <a class="link" href="/">Home</a>
-      <a class="link" href="/#work">See the work</a>
+      <a class="btn btn--amber" href="/#work">See the work</a>
+      <a class="btn" href="/">Home</a>
     </p>
   </section>
 </BaseLayout>

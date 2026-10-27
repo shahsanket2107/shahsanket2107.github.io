@@ -5,7 +5,7 @@ name: "kg, a Claude Code plugin"
 slug: "kg-plugin"
 start: 2026-10-01
 end: null
-tagline: "Turns any document set into a cited, audited knowledge graph a whole team can attach to."
+tagline: "Turns any document set into a cited, audited knowledge graph, so agents read a few facts instead of every doc."
 stack:
   - "Claude Code"
   - "Python"
